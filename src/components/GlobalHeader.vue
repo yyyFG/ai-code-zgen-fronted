@@ -1,102 +1,103 @@
 <template>
-  <a-layout-header class="global-header">
-    <div class="header-inner">
-      <div class="brand" @click="goHome">
-        <img class="logo" src="/favicon.svg" alt="logo" />
-        <span class="title">代码生成共享平台</span>
-      </div>
-
-      <a-menu class="nav-menu" mode="horizontal" theme="dark" :selectedKeys="selectedKeys">
-        <a-menu-item v-for="item in menuItems" :key="item.key">
-          <RouterLink :to="item.path">{{ item.label }}</RouterLink>
-        </a-menu-item>
-      </a-menu>
-
-      <div class="actions">
-        <a-button type="primary">登录</a-button>
-      </div>
-    </div>
+  <a-layout-header class="header">
+    <a-row :wrap="false">
+      <!-- 左侧：Logo和标题 -->
+      <a-col flex="200px">
+        <RouterLink to="/">
+          <div class="header-left">
+            <img class="logo" src="@/assets/logo.png" alt="Logo" />
+            <h1 class="site-title">代码生成共享平台</h1>
+          </div>
+        </RouterLink>
+      </a-col>
+      <!-- 中间：导航菜单 -->
+      <a-col flex="auto">
+        <a-menu
+          v-model:selectedKeys="selectedKeys"
+          mode="horizontal"
+          :items="menuItems"
+          @click="handleMenuClick"
+        />
+      </a-col>
+      <!-- 右侧：用户操作区域 -->
+      <a-col>
+        <div class="user-login-status">
+          <a-button type="primary">登录</a-button>
+        </div>
+      </a-col>
+    </a-row>
   </a-layout-header>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { h, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import type { MenuProps } from 'ant-design-vue'
 
-interface MenuItemConfig {
-  key: string
-  label: string
-  path: string
+const router = useRouter();
+
+//
+const handleMenuClick: MenuProps['onClick'] = (e) => {
+  const key = e.key as string
+  selectedKeys.value = [key]
+  //
+  if (key.startsWith('/')){
+    router.push(key)
+  }
 }
 
-const router = useRouter()
-const route = useRoute()
-
-const menuItems: MenuItemConfig[] = [
-  { key: 'home', label: '首页', path: '/' },
-  { key: 'about', label: '关于', path: '/about' },
-]
-
-const selectedKeys = computed(() => {
-  const found = menuItems.find((m) => route.path.startsWith(m.path))
-  return found ? [found.key] : []
+// 当前选中菜单
+const selectedKeys = ref<string[]>(['/'])
+// 监听路由变化，更新当前选中菜单
+router.afterEach((to, from, next) => {
+  selectedKeys.value = [to.path]
 })
 
-function goHome() {
-  router.push('/')
-}
-</script>
-<script lang="ts">
-export default { name: 'GlobalHeader' }
+// 菜单配置项
+const menuItems = ref([
+  {
+    key: '/',
+    label: '首页',
+    title: '首页',
+  },
+  {
+    key: '/about',
+    label: '关于',
+    title: '关于我们',
+  },
+  {
+    key: 'others',
+    label: h('a', { href: 'https://www.yaicode.com', target: '_blank' }, '编程导航'),
+    title: '编程导航',
+  },
+])
+
 </script>
 
 <style scoped>
-.global-header {
-  display: flex;
-  align-items: center;
-  padding: 0;
+.header {
+  background: #fff;
+  padding: 0 24px;
 }
 
-.header-inner {
+.header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
+  gap: 12px;
 }
 
 .logo {
-  width: 28px;
-  height: 28px;
+  height: 48px;
+  width: 48px;
 }
 
-.title {
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
+.site-title {
+  margin: 0;
+  font-size: 18px;
+  color: #1890ff;
 }
 
-.nav-menu {
-  flex: 1;
-  min-width: 0;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-}
-
-@media (max-width: 768px) {
-  .title {
-    display: none;
-  }
+.ant-menu-horizontal {
+  border-bottom: none !important;
 }
 </style>
